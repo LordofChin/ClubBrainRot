@@ -44,6 +44,7 @@ public class Main {
                     for (User p : ServerUdpHandler.players.values()) {
                     	Double xv = p.velocity[0];
                     	Double yv = p.velocity[1];
+                    	//System.out.println("|" + p.getUsername() + "|");
                     	
                     	// update position and decrement velocity magnitude
                     	if (xv > 0)

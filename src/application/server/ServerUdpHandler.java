@@ -3,6 +3,7 @@ package application.server;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +37,7 @@ public class ServerUdpHandler implements UdpHandler {
     public ServerUdpHandler(DatagramSocket socket) {
     	this.socket = socket;
     	udpT = UdpTransmitter.getInstance(socket);
-        System.out.printf("Server Properly started on port %s. Waiting for players to join.\n", socket.getLocalSocketAddress());
+        System.out.printf("Server started on port %s. Waiting for players to join.\n", socket.getLocalSocketAddress());
     }
 
     @Override
@@ -49,8 +50,9 @@ public class ServerUdpHandler implements UdpHandler {
         SocketAddress sadd = packet.getSocketAddress();
         
         // payload fields 
-        byte[] data = packet.getData();
-        byte header = data[0];
+        byte[] rawData = packet.getData();
+        byte header = rawData[0];
+        byte[] data = Arrays.copyOfRange(rawData, 1, packet.getLength());;
         String message = new String(packet.getData(), 1, packet.getLength() - 1);
 
         
@@ -62,18 +64,55 @@ public class ServerUdpHandler implements UdpHandler {
 	    	}
 	    	case 0x03 -> {
 	    		System.out.printf("movement received from %s\n", sadd);
-	    		handleMovement(data[1],sadd);
+	    		handleMovement(data[0],sadd);
 	        	}
 	    	case 0x04 -> {
 	    		System.out.printf("sign-on request received from %s\n", sadd);
 	    		handleSignOn(message,sadd);
+	    	}
+	    	case 0x05 -> {
+	    		System.out.printf("user customization received from %s\n", sadd);
+	    		handleUserCustomization(data, sadd);
 	    	}
 	    	default ->
 	        	System.out.println("Unknown packet type: " + header);
 	    	}
 	}
     
-    //method to handle movements
+    private void handleUserCustomization(byte [] data, SocketAddress sadd) {
+    	ByteBuffer wrapped = ByteBuffer.wrap(data); // big-endian by default
+    	int r = wrapped.getInt(); // 1
+    	int g = wrapped.getInt(); // 2
+    	int b = wrapped.getInt(); // 3
+    	StringBuilder sb = new StringBuilder();
+
+    	for (int i = 12; i < data.length; i += 2) {
+    	    char c = wrapped.getChar(i);
+    	    if (c == '\0') break;
+    	    sb.append(c);
+    	}
+
+    	String username = sb.toString();
+        
+    	User user = players.get(sadd);
+    	
+    	/*
+    	System.out.println(r);
+    	System.out.println(g);
+    	System.out.println(b);
+    	System.out.println(username);
+    	*/
+    	System.out.println(map.users);
+		map.users.remove(user);		// refresh the map or have the worst debug nightmare of your life
+    	user.setR(r);
+    	user.setG(g);
+    	user.setB(b);
+    	user.setUsername(username);
+		map.users.add(user);
+    	System.out.println(map.users);
+       	}
+
+	//method to handle movements
     public static void handleMovement(byte b, SocketAddress sadd) 
     {
     	User user = players.get(sadd);
@@ -110,7 +149,7 @@ public class ServerUdpHandler implements UdpHandler {
 
     	user.ttl = 1000;		// ~1000 ttls = 4 minutes * 60 seconds * 4 reaction frames
     	String msg = String.format("%s: %s", user.getUsername(), message);
-    	System.out.printf(msg);
+    	System.out.println(msg);
 	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	    baos.write(0x01);
 	    try {

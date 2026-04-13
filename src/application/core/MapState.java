@@ -33,26 +33,33 @@ public class MapState implements Serializable
 	}
     
 	public static MapState read(DatagramPacket packet) {
-	    try {
-	        byte type = packet.getData()[0];
+        byte type = packet.getData()[0];
 
-	        if (type != 2) {
-	            System.out.println("Unexpected packet type: " + type);
-	            return null;
-	        }
+        // make sure its a map state change
+        if (type != 2) {
+            System.out.println("Unexpected packet type: " + type);
+            return null;
+        }
 
-	        ByteArrayInputStream bis = new ByteArrayInputStream(packet.getData(), 1, packet.getLength() - 1);
+        // capture all the packet data in a byte array input stream
+        ByteArrayInputStream bis = new ByteArrayInputStream(packet.getData(), 1, packet.getLength() - 1);
+        instance = new MapState();
+	    
+        // try to pass the bis into an object input stream to be casted into a MapState Object
+        try {
 	        ObjectInputStream ois = new ObjectInputStream(bis);
 
-	        return (MapState) ois.readObject();
+	        instance = (MapState) ois.readObject();
+	        return instance;
 
 	    } catch (IOException e) {
-	        e.printStackTrace();
+			System.out.println("Failed to read MapState bytes from server into a MapState object");
 	        return null;
 	    } catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Could not find the class of the MapState packet?");
 			e.printStackTrace();
 		}
+        System.out.println("FAILED TO READ MAPSTATE");
 		return null;
 	}
 	

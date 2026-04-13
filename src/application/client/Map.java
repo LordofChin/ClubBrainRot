@@ -1,21 +1,15 @@
 package application.client;
 
-import java.io.ByteArrayInputStream;
-
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.DatagramPacket;
-import java.net.SocketAddress;
 import java.util.HashSet;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import application.core.MapState;
 import application.core.User;
 
@@ -23,10 +17,23 @@ import application.core.User;
 public class Map extends StackPane{
 	public static Map instance;
 	public static Chat chat = Chat.getInstance();
-	
+    private static Image noInternetMachineImg;
+    private static Rectangle noInternetMachine;
+    
+    private static Image closetImg;
+    private static Rectangle closet;
+
 	private Map (){
 		super();
-	}
+		
+		noInternetMachineImg = new Image("/application/client/arcade-machine-1.png");
+	    noInternetMachine = new Rectangle(150, 200);
+	    noInternetMachine.setFill(new ImagePattern(noInternetMachineImg));
+	    
+	    closetImg = new Image("/application/client/closet.png");
+	    closet = new Rectangle(150, 200);
+	    closet.setFill(new ImagePattern(closetImg));
+		}
 
 	
 	public static Map getInstance(Map map)
@@ -58,17 +65,20 @@ public class Map extends StackPane{
 	}
 	
 	public static void setInstance(MapState state) {
-	    // 1. Move to the JavaFX Thread
 	    Platform.runLater(() -> {
-	        HashSet<User> users = state.users;
+	    	HashSet<User> users = state.users;
 	        
-	        instance.getChildren().clear(); // clear all old circles
-
+	        instance.getChildren().clear();
+	        
+		    instance.getChildren().addAll(noInternetMachine,closet);
+		    StackPane.setAlignment(noInternetMachine, Pos.CENTER_RIGHT);
+		    StackPane.setAlignment(closet, Pos.BOTTOM_LEFT);
+		    
 	        for (User u : users) {
 	            //System.out.println("Updating player: " + u.getUsername());
 	            
 	            Double[] coords = new Double [] {u.x, u.y};
-	            Circle circle = new Circle(40); // Smaller radius looks better
+	            Circle circle = new Circle(40); 
 	            
 	            circle.setTranslateX(coords[0]);
 	            circle.setTranslateY(coords[1]);
@@ -91,6 +101,36 @@ public class Map extends StackPane{
 	            //System.out.println(coords[1]);
 	            
 	            instance.getChildren().addAll(circle, lbl);
+	           
+	            
+	        	if(u.getUsername().equals(Main.username))
+	        	{
+                    Main.color = Color.rgb(u.r, u.g, u.b);
+                    Main.user = u;
+
+	        		instance.applyCss();
+	        		instance.layout();
+	        		if (noInternetMachine.getBoundsInParent().intersects(circle.getBoundsInParent()))
+	        		{
+	    		    	Label instructionLbl = new Label("No Interenet Game: press e to play");
+	    		    	instructionLbl.setTranslateY(-30);
+	    	            instance.getChildren().addAll(instructionLbl);
+	    	            StackPane.setAlignment(instructionLbl, Pos.BOTTOM_CENTER);
+	    	            Main.eAction = "Interenet";
+	    		    }
+	        		else if (closet.getBoundsInParent().intersects(circle.getBoundsInParent()))
+	        		{
+	    		    	Label instructionLbl = new Label("clost: press e to change");
+	    		    	instructionLbl.setTranslateY(-30);
+	    	            instance.getChildren().addAll(instructionLbl);
+	    	            StackPane.setAlignment(instructionLbl, Pos.BOTTOM_CENTER);
+	    	            Main.eAction = "Closet";
+	    		    }
+	        		else 
+	        		{
+	        			Main.eAction = null;
+	        		}
+	        	}
 	        }
 	    });
 	}
@@ -100,68 +140,4 @@ public class Map extends StackPane{
 		instance.getChildren().add(circle);
 	}
 	
-	public DatagramPacket write(SocketAddress sadd) {
-		try 
-		{
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			baos.write(0x02); // prepend type byte
-			ObjectOutputStream oos = new ObjectOutputStream(baos);
-			oos.writeObject(getInstance());
-			oos.flush();
-
-			byte[] data = baos.toByteArray();
-			return new DatagramPacket(data, data.length, sadd);
-		} catch (IOException e)
-		{
-			System.err.print(e);
-			return null;
-		}
-	}
-	public byte[] toBytes()
-	{
-		try 
-		{
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    baos.write(0x02); // prepend type byte
-		    ObjectOutputStream oos = new ObjectOutputStream(baos);
-		    oos.writeObject(getInstance());
-		    oos.flush();
-
-		    return baos.toByteArray();
-		} catch (IOException e)
-		{
-			System.err.print(e);
-			return null;
-		}
-	}
-
-	public Map read(DatagramPacket packet) {
-	    try {
-	        byte type = packet.getData()[0];
-
-	        if (type != 2) {
-	            System.out.println("Unexpected packet type: " + type);
-	            return null;
-	        }
-
-	        ByteArrayInputStream bis = new ByteArrayInputStream(packet.getData(), 1, packet.getLength() - 1);
-	        ObjectInputStream ois = new ObjectInputStream(bis);
-
-	        /*
-	        Map newMap = (Map) ois.readObject();
-
-	        // copy data into current instance
-	        this.width = newMap.width;
-	        this.height = newMap.height;
-	        this.tiles = newMap.tiles;
-	        */
-
-
-	        return this;
-
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	        return null;
-	    }
-	}
 }
