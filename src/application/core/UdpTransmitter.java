@@ -9,6 +9,11 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Set;
 
+import application.client.NoInterenetGame;
+import javafx.application.Platform;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+
 
 public class UdpTransmitter {
     private static UdpTransmitter instance = null;
@@ -97,6 +102,12 @@ public class UdpTransmitter {
             DatagramPacket datagram = new DatagramPacket(data, data.length, ip, port);
             socket.send(datagram);
         } catch (IOException e) {
+			// start no internet game if the client can't create a socket
+    		Platform.runLater(() -> {
+    		    NoInterenetGame game = new NoInterenetGame(Color.RED, "player");
+    		    Stage gameStage = new Stage();
+    		    game.start(gameStage);
+    		});
             System.err.println("Error sending message: " + e.getMessage());
         }
     }

@@ -5,6 +5,11 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
@@ -17,22 +22,32 @@ import application.core.User;
 public class Map extends StackPane{
 	public static Map instance;
 	public static Chat chat = Chat.getInstance();
+	
     private static Image noInternetMachineImg;
     private static Rectangle noInternetMachine;
     
     private static Image closetImg;
     private static Rectangle closet;
+    
 
 	private Map (){
 		super();
 		
+		// set images
+		
+		// set image for no interenet arcade machine
 		noInternetMachineImg = new Image("/application/client/arcade-machine-1.png");
 	    noInternetMachine = new Rectangle(150, 200);
 	    noInternetMachine.setFill(new ImagePattern(noInternetMachineImg));
 	    
+	    // set image for the closet
 	    closetImg = new Image("/application/client/closet.png");
 	    closet = new Rectangle(150, 200);
 	    closet.setFill(new ImagePattern(closetImg));
+	    
+	    // set background image
+	    setStyle("-fx-background-image: url('/application/client/background.jpg'); -fx-background-size: cover;");
+
 		}
 
 	
@@ -114,6 +129,9 @@ public class Map extends StackPane{
 	        		{
 	    		    	Label instructionLbl = new Label("No Interenet Game: press e to play");
 	    		    	instructionLbl.setTranslateY(-30);
+	    		    	instructionLbl.setStyle("-fx-text-fill: limegreen;  -fx-font-family: Menlo; -fx-background-color: black;");
+
+	    		    	
 	    	            instance.getChildren().addAll(instructionLbl);
 	    	            StackPane.setAlignment(instructionLbl, Pos.BOTTOM_CENTER);
 	    	            Main.eAction = "Interenet";
@@ -122,6 +140,7 @@ public class Map extends StackPane{
 	        		{
 	    		    	Label instructionLbl = new Label("clost: press e to change");
 	    		    	instructionLbl.setTranslateY(-30);
+	    		    	instructionLbl.setStyle("-fx-text-fill: limegreen;  -fx-font-family: Menlo; -fx-background-color: black;");
 	    	            instance.getChildren().addAll(instructionLbl);
 	    	            StackPane.setAlignment(instructionLbl, Pos.BOTTOM_CENTER);
 	    	            Main.eAction = "Closet";

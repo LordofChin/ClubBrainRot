@@ -13,11 +13,13 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import application.core.NoInterenetGame;
+
 import java.net.DatagramPacket;
 
 
@@ -219,6 +221,7 @@ public class Main extends Application{
         stage.show();
         stage.setFullScreen(true);
 
+        
         Platform.runLater(() -> {
             new Thread(() -> runClient()).start();
         });

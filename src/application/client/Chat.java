@@ -6,6 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 
 public class Chat {
 	public String [] chat;
@@ -22,8 +23,10 @@ public class Chat {
         
         TextField inputField = new TextField();
         inputField.setPromptText("Enter message..."); 
+        inputField.setStyle("-fx-text-fill: limegreen;  -fx-font-family: Menlo; -fx-control-inner-background: black;");
 
         Button submitButton = new Button("Send");
+        submitButton.setStyle("-fx-text-fill: limegreen;  -fx-font-family: Menlo; -fx-background-color: black;");
 
         submitButton.setOnAction(event -> {
             String text = inputField.getText();
@@ -33,8 +36,10 @@ public class Chat {
             }
         });
 
+        Label chatLbl = new Label("Chat:");
+        chatLbl.setStyle("-fx-text-fill: limegreen;  -fx-font-family: Menlo; -fx-background-color: black;");
         HBox chatSubmit = new HBox();
-        chatSubmit.getChildren().addAll(new Label("Chat:"), inputField, submitButton);
+        chatSubmit.getChildren().addAll(chatLbl, inputField, submitButton);
         grid.add(chatSubmit, 0, 11); 
     
 	}
@@ -66,8 +71,10 @@ public class Chat {
             GridPane.getRowIndex(label) == currRow
             );
             
-            Label chatLbl = new Label(chat[9-i]);
-            grid.add(chatLbl, 0, i);
+            Label msgLbl = new Label(chat[9-i]);
+            msgLbl.setTextFill(Color.hsb(currRow * 36, 1.0, 1.0));
+            msgLbl.setStyle("-fx-font-family: Menlo; -fx-background-color: black;");
+            grid.add(msgLbl, 0, i);
 
         }        
         return grid;

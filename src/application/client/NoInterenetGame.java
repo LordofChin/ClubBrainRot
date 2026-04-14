@@ -1,4 +1,4 @@
-package application.core;
+package application.client;
 
 import javafx.application.Application;
 import javafx.animation.AnimationTimer;
@@ -59,7 +59,8 @@ public class NoInterenetGame extends Application {
         Label usernameLbl = new Label(username);
         usernameLbl.setTranslateX(100);
         usernameLbl.setTranslateY(985);
-        usernameLbl.setFont(new Font("Menlo",8));
+        usernameLbl.setFont(new Font("Menlo",14));
+        usernameLbl.setTextFill(Color.rgb((int) usercolor.getRed(), (int) usercolor.getGreen(), (int) usercolor.getBlue()));
         
         Rectangle ground = new Rectangle(5000,20);
         ground.setTranslateX(0);
@@ -87,7 +88,7 @@ public class NoInterenetGame extends Application {
         obstacle4.setTranslateY(770);
         obstacle4.setFill(Color.RED);
 
-        pane.getChildren().addAll(player, usernameLbl, obstacle, obstacle2, obstacle3, obstacle4,ground);
+        pane.getChildren().addAll(player, usernameLbl, obstacle, obstacle2, obstacle3, obstacle4, ground);
         
         double gravity = 0.5;
         double jumpStrength = -8;
