@@ -80,7 +80,7 @@ public class NoInterenetGame extends Application {
         obstacle.setTranslateY(780);
         obstacle.setFill(Color.RED);
         obstacle.setVisible(false);
-		tralalero_tralala_img = new Image("/application/client/tralalero-tralala.png");
+		tralalero_tralala_img = new Image("/assets/tralalero-tralala.png");
 		tralalero_tralala = new Rectangle(100, 60);
 	    tralalero_tralala.setFill(new ImagePattern(tralalero_tralala_img));
         tralalero_tralala.setTranslateX(260);
@@ -98,7 +98,7 @@ public class NoInterenetGame extends Application {
         obstacle3.setTranslateY(760);
         obstacle3.setFill(Color.RED);
         obstacle3.setVisible(false);
-        tung_tung_tung_sahur_img = new Image("/application/client/tung-tung-tung-sahur.png");
+        tung_tung_tung_sahur_img = new Image("/assets/tung-tung-tung-sahur.png");
         tung_tung_tung_sahur = new Rectangle(60, 70);
         tung_tung_tung_sahur.setFill(new ImagePattern(tung_tung_tung_sahur_img));
         tung_tung_tung_sahur.setTranslateX(1175);

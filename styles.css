@@ -1,0 +1,15 @@
+.progress-indicator .percentage
+{
+	-fx-fill: red;
+}
+
+.chat-button 
+{
+	
+}
+
+.map-style 
+{
+	-fx-background-image: url('/application/client/background.jpg'); 
+	-fx-background-size: cover;
+}

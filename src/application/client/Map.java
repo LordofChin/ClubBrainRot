@@ -36,17 +36,19 @@ public class Map extends StackPane{
 		// set images
 		
 		// set image for no interenet arcade machine
-		noInternetMachineImg = new Image("/application/client/arcade-machine-1.png");
+		noInternetMachineImg = new Image("/assets/arcade-machine-1.png");
 	    noInternetMachine = new Rectangle(150, 200);
 	    noInternetMachine.setFill(new ImagePattern(noInternetMachineImg));
 	    
 	    // set image for the closet
-	    closetImg = new Image("/application/client/closet.png");
+	    closetImg = new Image("/assets/closet.png");
 	    closet = new Rectangle(150, 200);
 	    closet.setFill(new ImagePattern(closetImg));
 	    
+	    //getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+
 	    // set background image
-	    setStyle("-fx-background-image: url('/application/client/background.jpg'); -fx-background-size: cover;");
+	    setStyle("-fx-background-image: url('/assets/background.jpg'); -fx-background-size: cover;");
 
 		}
 
