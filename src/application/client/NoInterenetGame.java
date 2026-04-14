@@ -6,9 +6,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
@@ -17,7 +19,12 @@ import javafx.stage.Stage;
 public class NoInterenetGame extends Application {
 	private static Color usercolor;
 	private static String username;
-	
+    private static Image tralalero_tralala_img;
+    private static Rectangle tralalero_tralala;
+    private static Image tung_tung_tung_sahur_img;
+    private static Rectangle tung_tung_tung_sahur;
+    
+    
 	public NoInterenetGame (Color usercolor, String username)
 	{
 		super();
@@ -59,8 +66,8 @@ public class NoInterenetGame extends Application {
         Label usernameLbl = new Label(username);
         usernameLbl.setTranslateX(100);
         usernameLbl.setTranslateY(985);
-        usernameLbl.setFont(new Font("Menlo",14));
-        usernameLbl.setTextFill(Color.rgb((int) usercolor.getRed(), (int) usercolor.getGreen(), (int) usercolor.getBlue()));
+        //usernameLbl.setFont(new Font("Menlo",14));
+        usernameLbl.setTextFill(Color.rgb((int) (255 - usercolor.getRed()), (int) (255 - usercolor.getGreen()), (int) (255 - usercolor.getBlue())));
         
         Rectangle ground = new Rectangle(5000,20);
         ground.setTranslateX(0);
@@ -72,23 +79,37 @@ public class NoInterenetGame extends Application {
         obstacle.setTranslateX(300);
         obstacle.setTranslateY(780);
         obstacle.setFill(Color.RED);
+        obstacle.setVisible(false);
+		tralalero_tralala_img = new Image("/application/client/tralalero-tralala.png");
+		tralalero_tralala = new Rectangle(100, 60);
+	    tralalero_tralala.setFill(new ImagePattern(tralalero_tralala_img));
+        tralalero_tralala.setTranslateX(260);
+        tralalero_tralala.setTranslateY(760);
         
+	    
         Rectangle obstacle2 = new Rectangle(20, 40);
         obstacle2.setTranslateX(800);
         obstacle2.setTranslateY(760);
         obstacle2.setFill(Color.RED);
+
         
         Rectangle obstacle3 = new Rectangle(10, 40);
         obstacle3.setTranslateX(1200);
         obstacle3.setTranslateY(760);
         obstacle3.setFill(Color.RED);
+        obstacle3.setVisible(false);
+        tung_tung_tung_sahur_img = new Image("/application/client/tung-tung-tung-sahur.png");
+        tung_tung_tung_sahur = new Rectangle(60, 70);
+        tung_tung_tung_sahur.setFill(new ImagePattern(tung_tung_tung_sahur_img));
+        tung_tung_tung_sahur.setTranslateX(1175);
+        tung_tung_tung_sahur.setTranslateY(750);
         
         Rectangle obstacle4 = new Rectangle(20, 30);
         obstacle4.setTranslateX(1800);
         obstacle4.setTranslateY(770);
         obstacle4.setFill(Color.RED);
 
-        pane.getChildren().addAll(player, usernameLbl, obstacle, obstacle2, obstacle3, obstacle4, ground);
+        pane.getChildren().addAll(player, obstacle, obstacle2, obstacle3, obstacle4, ground, usernameLbl, tralalero_tralala, tung_tung_tung_sahur);
         
         double gravity = 0.5;
         double jumpStrength = -8;
@@ -149,8 +170,10 @@ public class NoInterenetGame extends Application {
 
                 // Move obstacle to the left
                 obstacle.setTranslateX(obstacle.getTranslateX() - obstacleSpeed[0]);
+                tralalero_tralala.setTranslateX(tralalero_tralala.getTranslateX() - obstacleSpeed[0]);
                 obstacle2.setTranslateX(obstacle2.getTranslateX() - obstacleSpeed[0]);
                 obstacle3.setTranslateX(obstacle3.getTranslateX() - obstacleSpeed[0]);
+                tung_tung_tung_sahur.setTranslateX(tung_tung_tung_sahur.getTranslateX() - obstacleSpeed[0]);
                 obstacle4.setTranslateX(obstacle4.getTranslateX() - obstacleSpeed[0]);
                 
 
@@ -158,6 +181,7 @@ public class NoInterenetGame extends Application {
                 if (obstacle.getTranslateX() + obstacle.getWidth() < 0) 
                 {
                     obstacle.setTranslateX(2000); // reset to right side of screen
+                    tralalero_tralala.setTranslateX(1960);
                 }
                 
                 if (obstacle2.getTranslateX() + obstacle2.getWidth() < 0) 
@@ -168,6 +192,7 @@ public class NoInterenetGame extends Application {
                 if (obstacle3.getTranslateX() + obstacle3.getWidth() < 0) 
                 {
                     obstacle3.setTranslateX(2000); // reset to right side of screen
+                    tung_tung_tung_sahur.setTranslateX(1975);
                 }
                 
                 if (obstacle4.getTranslateX() + obstacle4.getWidth() < 0) 
