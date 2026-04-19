@@ -23,6 +23,11 @@ public class NoInterenetGame extends Application {
     private static Rectangle tralalero_tralala;
     private static Image tung_tung_tung_sahur_img;
     private static Rectangle tung_tung_tung_sahur;
+    private static Rectangle il_cacto_hipopotamo;
+    private static Image il_cacto_hipopotamo_img;
+    private static Rectangle la_vaca_saturno_saturnita;
+    private static Image la_vaca_saturno_saturnita_img;
+    
     
     
 	public NoInterenetGame (Color usercolor, String username)
@@ -81,16 +86,22 @@ public class NoInterenetGame extends Application {
         obstacle.setFill(Color.RED);
         obstacle.setVisible(false);
 		tralalero_tralala_img = new Image("/assets/tralalero-tralala.png");
-		tralalero_tralala = new Rectangle(100, 60);
+		tralalero_tralala = new Rectangle(100, 70);
 	    tralalero_tralala.setFill(new ImagePattern(tralalero_tralala_img));
         tralalero_tralala.setTranslateX(260);
-        tralalero_tralala.setTranslateY(760);
+        tralalero_tralala.setTranslateY(755);
         
 	    
         Rectangle obstacle2 = new Rectangle(20, 40);
         obstacle2.setTranslateX(800);
         obstacle2.setTranslateY(760);
         obstacle2.setFill(Color.RED);
+        obstacle2.setVisible(false);
+        il_cacto_hipopotamo_img = new Image("/assets/il-cacto-hipopotamo.png");
+        il_cacto_hipopotamo = new Rectangle(60, 70);
+        il_cacto_hipopotamo.setFill(new ImagePattern((il_cacto_hipopotamo_img)));
+        il_cacto_hipopotamo.setTranslateX(780);
+        il_cacto_hipopotamo.setTranslateY(740);
 
         
         Rectangle obstacle3 = new Rectangle(10, 40);
@@ -99,17 +110,23 @@ public class NoInterenetGame extends Application {
         obstacle3.setFill(Color.RED);
         obstacle3.setVisible(false);
         tung_tung_tung_sahur_img = new Image("/assets/tung-tung-tung-sahur.png");
-        tung_tung_tung_sahur = new Rectangle(60, 70);
+        tung_tung_tung_sahur = new Rectangle(70, 70);
         tung_tung_tung_sahur.setFill(new ImagePattern(tung_tung_tung_sahur_img));
-        tung_tung_tung_sahur.setTranslateX(1175);
-        tung_tung_tung_sahur.setTranslateY(750);
+        tung_tung_tung_sahur.setTranslateX(1170);
+        tung_tung_tung_sahur.setTranslateY(745);
         
         Rectangle obstacle4 = new Rectangle(20, 30);
         obstacle4.setTranslateX(1800);
         obstacle4.setTranslateY(770);
         obstacle4.setFill(Color.RED);
+        obstacle4.setVisible(false);
+        la_vaca_saturno_saturnita_img = new Image("/assets/la-vaca-saturno-saturnita.png");
+        la_vaca_saturno_saturnita = new Rectangle(70, 60);
+        la_vaca_saturno_saturnita.setFill(new ImagePattern(la_vaca_saturno_saturnita_img));
+        la_vaca_saturno_saturnita.setTranslateX(1775);
+        la_vaca_saturno_saturnita.setTranslateY(750);
 
-        pane.getChildren().addAll(player, obstacle, obstacle2, obstacle3, obstacle4, ground, usernameLbl, tralalero_tralala, tung_tung_tung_sahur);
+        pane.getChildren().addAll(player, obstacle, obstacle2, obstacle3, obstacle4, ground, usernameLbl, tralalero_tralala, tung_tung_tung_sahur, il_cacto_hipopotamo,la_vaca_saturno_saturnita);
         
         double gravity = 0.5;
         double jumpStrength = -8;
@@ -172,9 +189,12 @@ public class NoInterenetGame extends Application {
                 obstacle.setTranslateX(obstacle.getTranslateX() - obstacleSpeed[0]);
                 tralalero_tralala.setTranslateX(tralalero_tralala.getTranslateX() - obstacleSpeed[0]);
                 obstacle2.setTranslateX(obstacle2.getTranslateX() - obstacleSpeed[0]);
+                il_cacto_hipopotamo.setTranslateX(il_cacto_hipopotamo.getTranslateX() - obstacleSpeed[0]);
                 obstacle3.setTranslateX(obstacle3.getTranslateX() - obstacleSpeed[0]);
                 tung_tung_tung_sahur.setTranslateX(tung_tung_tung_sahur.getTranslateX() - obstacleSpeed[0]);
                 obstacle4.setTranslateX(obstacle4.getTranslateX() - obstacleSpeed[0]);
+                la_vaca_saturno_saturnita.setTranslateX(la_vaca_saturno_saturnita.getTranslateX() - obstacleSpeed[0]);
+
                 
 
                 // Reset obstacle if it goes off screen (optional)
@@ -187,17 +207,19 @@ public class NoInterenetGame extends Application {
                 if (obstacle2.getTranslateX() + obstacle2.getWidth() < 0) 
                 {
                     obstacle2.setTranslateX(2000); // reset to right side of screen
+                    il_cacto_hipopotamo.setTranslateX(1980);
                 }
                 
                 if (obstacle3.getTranslateX() + obstacle3.getWidth() < 0) 
                 {
                     obstacle3.setTranslateX(2000); // reset to right side of screen
-                    tung_tung_tung_sahur.setTranslateX(1975);
+                    tung_tung_tung_sahur.setTranslateX(1970);
                 }
                 
                 if (obstacle4.getTranslateX() + obstacle4.getWidth() < 0) 
                 {
                     obstacle4.setTranslateX(2000); // reset to right side of screen
+                    la_vaca_saturno_saturnita.setTranslateX(1975);
                 }
 
                 // Check collision
