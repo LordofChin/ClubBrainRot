@@ -1,5 +1,7 @@
 package application.client;
 
+import javafx.geometry.Pos;
+
 import javafx.application.Application;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Pos;
@@ -8,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
@@ -15,6 +18,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public class NoInterenetGame extends Application {
 	private static Color usercolor;
@@ -27,6 +31,7 @@ public class NoInterenetGame extends Application {
     private static Image il_cacto_hipopotamo_img;
     private static Rectangle la_vaca_saturno_saturnita;
     private static Image la_vaca_saturno_saturnita_img;
+
     
     
     
@@ -57,7 +62,7 @@ public class NoInterenetGame extends Application {
     {
     	primaryStage.setFullScreen(true);
     	
-        BorderPane pane = new BorderPane();
+        Pane pane = new Pane();
        
         Scene scene = new Scene(pane, 300, 300);
 
@@ -68,11 +73,18 @@ public class NoInterenetGame extends Application {
         player.setFill(usercolor);
         
         // Username
-        Label usernameLbl = new Label(username);
-        usernameLbl.setTranslateX(100);
-        usernameLbl.setTranslateY(985);
-        //usernameLbl.setFont(new Font("Menlo",14));
-        usernameLbl.setTextFill(Color.rgb((int) (255 - usercolor.getRed()), (int) (255 - usercolor.getGreen()), (int) (255 - usercolor.getBlue())));
+        Label usernameLbl = new Label();
+        usernameLbl.setText(username);
+        usernameLbl.translateXProperty().bind(
+        	    player.translateXProperty()
+        	        .subtract(usernameLbl.widthProperty().divide(2))
+        	);
+        usernameLbl.translateYProperty().bind(
+        	    player.translateYProperty()
+        	        .subtract(usernameLbl.heightProperty().divide(2))
+        	);
+        usernameLbl.setFont(new Font("Menlo",8));
+        usernameLbl.setTextFill(usercolor.invert());
         
         Rectangle ground = new Rectangle(5000,20);
         ground.setTranslateX(0);
@@ -170,14 +182,12 @@ public class NoInterenetGame extends Application {
                 // Gravity
                 velocityY[0] += gravity;
                 player.setTranslateY(player.getTranslateY() + velocityY[0]);
-                usernameLbl.setTranslateY(player.getTranslateY() + velocityY[0]);
 
                 double playerBottom = player.getTranslateY() + player.getRadius();
                 double groundTop = ground.getTranslateY();
 
                 if (playerBottom >= groundTop) {
                     player.setTranslateY(groundTop - player.getRadius());
-                    usernameLbl.setTranslateY(groundTop - player.getRadius());
                     
                     velocityY[0] = 0;
                     canJump[0] = true;

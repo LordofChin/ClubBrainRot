@@ -94,6 +94,7 @@ public class Main extends Application{
             }
             if(code.equals("e"))
             {
+            	// starts no interenet game 
             	if(eAction.equals("Interenet"))
             	{
             		Platform.runLater(() -> {
@@ -106,6 +107,8 @@ public class Main extends Application{
             		    }
             		});
             	}
+            	
+            	// enters and handles closet
             	else if (eAction.equals("Closet")) {
             	    Platform.runLater(() -> {
             	    	preview = new Rectangle(50, 50, Color.rgb(user.r, user.g, user.b));
@@ -117,6 +120,8 @@ public class Main extends Application{
             	    	lblBlueVal = new Label(String.format("%d",user.b));
             	        Dialog<ButtonType> dialog = new Dialog<>();
             	        dialog.setTitle("Customize User");
+            	        dialog.initOwner(stage);
+
             			
             			// name field
             	        TextField nameField = new TextField(username);
@@ -262,6 +267,6 @@ public class Main extends Application{
 
 	    Optional<String> result = dialog.showAndWait();
 	    username = result.orElse("Anonymous");
-	    return result.orElse("Anonymous");
+	    return username;
 	}
 }
