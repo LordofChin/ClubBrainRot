@@ -1,155 +1,201 @@
 package application.client;
 
-	import javax.swing.*;
-	import java.awt.*;
-	import java.awt.event.*;
-	import java.util.ArrayList;
-	import java.util.Random;
+import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.control.DialogPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import java.util.ArrayList;
+import java.util.Random;
 
-	public class FishingGame extends JPanel implements ActionListener, KeyListener {
+import application.core.Game;
 
-	    private static final long serialVersionUID = 1L;
-		private final int panelWidth = 400;
-	    private final int panelHeight = 600;
+public class FishingGame extends Game {
 
-	    private int hookX = 185;
-	    private int hookY = 0;
-	    private boolean dropping = false;
-	    private final int hookSpeed = 5;
+    private double hookX = 185;
+    private double hookY = 0;
 
-	    private int score = 0;
-	    private final Timer timer;
-	    private final Random rand = new Random();
+    private boolean dropping = false;
 
-	    private final Image sharkImg;
-	    private final Image hookImg;
+    private final double hookSpeed = 6;
 
-	    private final ArrayList<Rectangle> fishList = new ArrayList<>();
-	    private final int[] fishYPositions = {220, 320, 420};
+    private int score = 0;
 
-	    public FishingGame() {
-	        setPreferredSize(new Dimension(panelWidth, panelHeight));
-	        setFocusable(true);
-	        addKeyListener(this);
+    private Rectangle hook;
 
-	        sharkImg = new ImageIcon(getClass().getResource("/assets/shark.jpg")).getImage();
-	        hookImg  = new ImageIcon(getClass().getResource("/assets/hook.jpg")).getImage();
+    private ArrayList<ImageView> fishList = new ArrayList<>();
+    private Image[] fishImages;
+    private Random rand = new Random();
 
-	        for (int i = 0; i < 3; i++) {
-	            int x = rand.nextInt(250);
-	            int y = fishYPositions[i];
-	            fishList.add(new Rectangle(x, y, 60, 60));
-	        }
+    private boolean left, right, space;
 
-	        timer = new Timer(16, this);
-	        timer.start();
-	    }
+    private AnimationTimer loop;
 
-	    @Override
-	    protected void paintComponent(Graphics g) {
-	        super.paintComponent(g);
+    public FishingGame(Stage stage) {
+    	super("Fishing Game", stage);    	
+        getPane().setPrefSize(400, 600);
 
-	        g.setColor(new Color(120, 230, 255));
-	        g.fillRect(0, 0, panelWidth, 150);
+        // background water
+        getPane().setStyle("-fx-background-color: linear-gradient(to bottom, lightblue, darkblue);");
 
-	        g.setColor(new Color(0, 0, 255));
-	        g.fillRect(0, 150, panelWidth, 450);
+        // hook
+        hook = new Rectangle(10, 30, Color.BLACK);
+        Image hookImg = new Image(getClass().getResource("/assets/hook.jpg").toExternalForm());
+        hook.setFill(new ImagePattern (hookImg));
+        hook.setTranslateX(hookX);
+        hook.setTranslateY(hookY);
 
-	        g.setColor(Color.BLACK);
-	        g.drawLine(hookX + 5, 0, hookX + 5, hookY);
+        getPane().getChildren().add(hook);
+        
+        fishImages = new Image[] {
+        		new Image(getClass().getResource("/assets/enemy1.jpeg").toExternalForm()),
+    		    new Image(getClass().getResource("/assets/enemy2.jpeg").toExternalForm()),
+    		    new Image(getClass().getResource("/assets/enemy3.jpeg").toExternalForm())
+    		};
 
-	        if (hookImg != null) {
-	            g.drawImage(hookImg, hookX - 10, hookY, 25, 50, null);
-	        } else {
-	            g.fillRect(hookX, hookY, 10, 40);
-	        }
+        // fish spawn
+        for (int i = 0; i < 3; i++) {
 
-	        for (Rectangle fish : fishList) {
-	            if (sharkImg != null) {
-	                g.drawImage(sharkImg, fish.x, fish.y, 60, 60, null);
-	            } else {
-	                g.setColor(Color.GREEN);
-	                g.fillOval(fish.x, fish.y, fish.width, fish.height);
-	            }
-	        }
+            ImageView fish = new ImageView(fishImages[rand.nextInt(fishImages.length)]);
+            fish.setFitWidth(40);
+            fish.setFitHeight(25);
 
-	        g.setColor(Color.WHITE);
-	        g.setFont(new Font("Arial", Font.BOLD, 22));
-	        g.drawString("Score: " + score, 10, 30);
+            fish.setTranslateX(rand.nextInt(300));
+            fish.setTranslateY(200 + i * 100);
 
-	        g.setFont(new Font("Arial", Font.BOLD, 16));
-	        g.drawString("SPACE = drop hook", 10, 55);
-	        g.drawString("LEFT/RIGHT = move", 10, 78);
-	    }
+            fishList.add(fish);
+        }
 
-	    @Override
-	    public void actionPerformed(ActionEvent e) {
-	        if (dropping) {
-	            hookY += hookSpeed;
-	            if (hookY >= 520) {
-	                dropping = false;
-	            }
-	        } else if (hookY > 0) {
-	            hookY -= hookSpeed;
-	        }
+        getPane().getChildren().addAll(fishList);
 
-	        Rectangle hookRect = new Rectangle(hookX - 10, hookY, 25, 50);
+        setupControls();
+        startGameLoop();
+        
+        this.setOnShown(e -> {
+            getDialogPane().requestFocus();
+            Platform.runLater(() -> getDialogPane().requestFocus());
+        });
+        
+        showAndWait();
+    }
 
-	        for (int i = 0; i < fishList.size(); i++) {
-	            Rectangle fish = fishList.get(i);
-	            fish.x += 2;
+    private void setupControls() {
+        DialogPane dialogPane = getDialogPane();
+        
+        // Ensure the pane can receive focus
+        dialogPane.setFocusTraversable(true);
+        Platform.runLater(() -> dialogPane.requestFocus());
 
-	            if (fish.x > panelWidth) {
-	                fish.x = -60;
-	                fish.y = fishYPositions[i];
-	            }
+        // Use EventFilters on the DialogPane itself
+        dialogPane.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.SPACE) space = true;
+            if (e.getCode() == KeyCode.LEFT) left = true;
+            if (e.getCode() == KeyCode.RIGHT) right = true;
+            
+            // Prevent the key from triggering dialog buttons (like Enter/Esc)
+            e.consume(); 
+        });
 
-	            if (hookRect.intersects(fish)) {
-	                score++;
-	                fish.x = -60;
-	                fish.y = fishYPositions[i];
-	                dropping = false;
-	            }
-	        }
+        dialogPane.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
+            if (e.getCode() == KeyCode.SPACE) space = false;
+            if (e.getCode() == KeyCode.LEFT) left = false;
+            if (e.getCode() == KeyCode.RIGHT) right = false;
+            e.consume();
+        });
+    }
 
-	        repaint();
-	    }
+    private void startGameLoop() {
 
-	    @Override
-	    public void keyPressed(KeyEvent e) {
-	        int key = e.getKeyCode();
+        loop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
 
-	        if (key == KeyEvent.VK_SPACE) {
-	            if (!dropping && hookY == 0) {
-	                dropping = true;
-	            }
-	        } else if (key == KeyEvent.VK_LEFT) {
-	            hookX = Math.max(10, hookX - 15);
-	        } else if (key == KeyEvent.VK_RIGHT) {
-	            hookX = Math.min(panelWidth - 20, hookX + 15);
-	        }
+                updatePlayer();
+                updateHook();
+                updateFish();
+                checkCollisions();
+            }
+        };
 
-	        repaint();
-	    }
+        loop.start();
+    }
 
-	    @Override
-	    public void keyReleased(KeyEvent e) {
-	    }
+    private void updatePlayer() {
 
-	    @Override
-	    public void keyTyped(KeyEvent e) {
-	    }
+        if (left) hookX -= 5;
+        if (right) hookX += 5;
 
-	    public static void main(String[] args) {
-	        JFrame frame = new JFrame("Fish the BrainRot");
-	        FishingGame game = new FishingGame();
+        hookX = Math.max(0, Math.min(360, hookX));
+    }
 
-	        frame.add(game);
-	        frame.pack();
-	        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	        frame.setLocationRelativeTo(null);
-	        frame.setVisible(true);
+    private void updateHook() {
 
-	        game.requestFocusInWindow();
-	    }
-	}
+        if (space && hookY == 0) {
+            dropping = true;
+        }
+
+        if (dropping) {
+            hookY += hookSpeed;
+        } else if (hookY > 0) {
+            hookY -= hookSpeed;
+        }
+
+        if (hookY > 520) {
+            dropping = false;
+        }
+
+        if (hookY < 0) hookY = 0;
+
+        hook.setTranslateX(hookX);
+        hook.setTranslateY(hookY);
+    }
+
+    private void updateFish() {
+
+        for (ImageView fish : fishList) {
+
+            fish.setTranslateX(fish.getTranslateX() + 2);
+
+            if (fish.getTranslateX() > 400) {
+                fish.setTranslateX(-50);
+                fish.setTranslateY(200 + rand.nextInt(300));
+            }
+        }
+    }
+
+    private void checkCollisions() {
+
+        Rectangle hookBounds = new Rectangle(hookX, hookY, 10, 30);
+
+        for (ImageView fish : fishList) {
+
+            if (hookBounds.getBoundsInParent().intersects(fish.getBoundsInParent())) {
+
+                score++;
+
+                fish.setTranslateX(-50);
+                fish.setTranslateY(200 + rand.nextInt(300));
+
+                dropping = false;
+                hookY = 0;
+
+                System.out.println("Score: " + score);
+            }
+        }
+    }
+
+    public void stopGame() {
+        loop.stop();
+    }
+
+    public int getScore() {
+        return score;
+    }
+}

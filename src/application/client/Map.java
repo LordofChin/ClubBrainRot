@@ -33,6 +33,10 @@ public class Map extends StackPane
     private static Image fishingMachineImg;
     private static Rectangle fishingMachine;
     
+    // whack a' mole
+    private static Image moleMachineImg;
+    private static Rectangle moleMachine;
+    
     // closet fields
     private static Image closetImg;
     private static Rectangle closet;
@@ -46,10 +50,15 @@ public class Map extends StackPane
 	    noInternetMachine = new Rectangle(150, 200);
 	    noInternetMachine.setFill(new ImagePattern(noInternetMachineImg));
 	    
-		// set image for no fishing arcade machine
+		// set image for fishing arcade machine
 		fishingMachineImg = new Image("/assets/arcade-machine-2.png");
 	    fishingMachine = new Rectangle(200, 150);
 	    fishingMachine.setFill(new ImagePattern(fishingMachineImg));
+	    
+		// set image for whack a mole arcade machine
+		moleMachineImg = new Image("/assets/whac-a-mole.png");
+	    moleMachine = new Rectangle(200, 150);
+	    moleMachine.setFill(new ImagePattern(moleMachineImg));
 	    
 	    // set image for the closet
 	    closetImg = new Image("/assets/closet.png");
@@ -85,11 +94,14 @@ public class Map extends StackPane
 	        instance.getChildren().clear();
 	        
 	        // add back the pre-rendered interactive objects
-		    instance.getChildren().addAll(noInternetMachine, fishingMachine, closet);
+		    instance.getChildren().addAll(noInternetMachine, fishingMachine, closet, moleMachine);
 		    StackPane.setAlignment(noInternetMachine, Pos.CENTER_RIGHT);
 		    StackPane.setAlignment(closet, Pos.BOTTOM_LEFT);
 		    fishingMachine.setTranslateY(-250);
 		    StackPane.setAlignment(fishingMachine, Pos.BOTTOM_LEFT);
+		    moleMachine.setTranslateY(-450);
+		    StackPane.setAlignment(moleMachine, Pos.BOTTOM_LEFT);
+
 		    
 		    // iterate over the current user list
 	        for (User u : users) {
@@ -141,6 +153,10 @@ public class Map extends StackPane
 	        		else if (closet.getBoundsInParent().intersects(circle.getBoundsInParent()))
 	        		{
 	        			instructionLabel("Closet: press e to change", "Closet");
+	    		    }
+	        		else if (moleMachine.getBoundsInParent().intersects(circle.getBoundsInParent()))
+	        		{
+	        			instructionLabel("Whack a' Mole: press e to play", "Mole");
 	    		    }
 	        		// reset action if no collisions found
 	        		else 

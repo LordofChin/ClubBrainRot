@@ -4,6 +4,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 
 import application.core.*;
+import javafx.animation.AnimationTimer;
 import javafx.application.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,6 +16,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -44,6 +46,8 @@ public class Main extends Application{
     protected static String eAction = null;
 	private Map map = Map.getInstance();
 	private Chat chat = Chat.getInstance();
+	protected Stage stage;
+	private boolean wPressed, aPressed, sPressed, dPressed;
 	
     // color sliders and labels
 	Slider rSlide;
@@ -78,6 +82,7 @@ public class Main extends Application{
 
     @Override
     public void start(Stage stage) {
+    	this.stage = stage;
     	try {
 			serverAddress = InetAddress.getByName(serverIP);	// get Inet address from the provided server IP
 		} catch (UnknownHostException e) {
@@ -111,11 +116,11 @@ public class Main extends Application{
             		});
             	}
             	
-            	// starts fishing game 
+
             	if(eAction.equals("Fishing"))
             	{
             		Platform.runLater(() -> {
-            		        FishingGame.main(new String [] {});
+            			new FishingGame(stage);
             		});
             	}
             	
@@ -248,6 +253,42 @@ public class Main extends Application{
             	}
             }       
         });
+        
+
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            String code = event.getCode().getChar().toLowerCase();
+            
+            // Handle movement keys
+            if (code.equals("w")) wPressed = true;
+            if (code.equals("a")) aPressed = true;
+            if (code.equals("s")) sPressed = true;
+            if (code.equals("d")) dPressed = true;
+
+            // Handle "E" actions (keep this as-is since it's a single trigger)
+            if (code.equals("e")) {
+                handleEAction(); // Move your existing 'E' logic into a helper method
+            }
+        });
+
+        scene.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+            String code = event.getCode().getChar().toLowerCase();
+            if (code.equals("w")) wPressed = false;
+            if (code.equals("a")) aPressed = false;
+            if (code.equals("s")) sPressed = false;
+            if (code.equals("d")) dPressed = false;
+        });
+
+        // 3. Start a small AnimationTimer to send the UDP packets smoothly
+        AnimationTimer movementTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                if (wPressed) UdpTransmitter.getInstance().move(serverAddress, port, 'w');
+                if (aPressed) UdpTransmitter.getInstance().move(serverAddress, port, 'a');
+                if (sPressed) UdpTransmitter.getInstance().move(serverAddress, port, 's');
+                if (dPressed) UdpTransmitter.getInstance().move(serverAddress, port, 'd');
+            }
+        };
+        movementTimer.start();
        
         Platform.runLater(() -> {
             new Thread(() -> runClient()).start();
@@ -285,5 +326,162 @@ public class Main extends Application{
 	    Optional<String> result = dialog.showAndWait();
 		user = new User(result.orElse("Anonymous"));							// instatiate user
 	    return user.getUsername();
+	}
+	
+	public void handleEAction() 
+	{
+        	// starts no interenet game 
+        	if(eAction.equals("Interenet"))
+        	{
+        		Platform.runLater(() -> {
+        		        NoInterenetGame game = new NoInterenetGame();
+        		        Stage gameStage = new Stage();
+        		        game.start(gameStage);
+        		});
+        	}
+        	
+
+        	if(eAction.equals("Fishing"))
+        	{
+        		Platform.runLater(() -> {
+        			new FishingGame(stage);
+        		});
+        	}
+
+        	if(eAction.equals("Mole"))
+        	{
+        		Platform.runLater(() -> {
+        			new WhackAMole(stage);
+        		});
+        	}
+        	
+        	// enters and handles closet
+        	else if (eAction.equals("Closet")) {
+        	    Platform.runLater(() -> {
+        	    	preview = new Rectangle(50, 50, Color.rgb(user.r, user.g, user.b));
+        	    	rSlide = new Slider(0,255,user.r);
+        	    	gSlide = new Slider(0,255,user.g);
+        	    	bSlide = new Slider(0,255,user.b);
+        	    	lblRedVal = new Label(String.format("%d",user.r));
+        	    	lblGreenVal = new Label(String.format("%d",user.g));
+        	    	lblBlueVal = new Label(String.format("%d",user.b));
+        	        Dialog<ButtonType> dialog = new Dialog<>();
+        	        dialog.setTitle("Customize User");
+        	        dialog.initOwner(stage);
+
+        			
+        			// name field
+        	        TextField nameField = new TextField(user.getUsername());
+
+        	        // grid
+        	        GridPane grid = new GridPane();
+        	        grid.setHgap(10);
+        	        grid.setVgap(10);
+        			grid.addRow(0, new Label("Username: "), nameField);
+        			grid.addRow(1, new Label("Red: "), rSlide, lblRedVal);
+        			grid.addRow(2, new Label("Green: "), gSlide, lblGreenVal);
+        			grid.addRow(3, new Label("Blue: "), bSlide, lblBlueVal);
+        	        // color preview box with hexcode
+        	        Label hexCode = new Label("#000000");
+        			
+        			VBox root = new VBox(15, preview, hexCode, grid);
+        			root.setAlignment(Pos.CENTER);
+        			root.setPadding(new Insets(20));
+
+        	        // update colors lambda
+        	        Runnable updateColor = () -> {
+        	            try {
+        	            	int r = (int)rSlide.getValue();
+        	            	int g = (int)gSlide.getValue();
+        	            	int b = (int)bSlide.getValue();
+        	    			lblRedVal.setText(String.valueOf(r));
+        	    			lblGreenVal.setText(String.valueOf(g));
+        	    			lblBlueVal.setText(String.valueOf(b));
+        	    			updateColor();
+        	    			String[] colorStringList = {
+        	    					Integer.toHexString(r),
+        	    					Integer.toHexString(g),
+        	    					Integer.toHexString(b)
+        	    			};
+        	    			for(int i = 0; i < 3; i++) {
+        	    				if(colorStringList[i].length() < 2) {
+        	    					colorStringList[i] = "0" + colorStringList[i];
+        	    				}
+        	    			}
+        	    			
+        	    			hexCode.setText(String.format("#%s%s%s", colorStringList[0], colorStringList[1], colorStringList[2]));
+
+        	                preview.setFill(Color.rgb(r, g, b));
+        	            } catch (Exception ignored) {}
+        	    	};
+
+        	        // live preview listeners
+        	        rSlide.valueProperty().addListener((obs, oldVal, newVal) -> updateColor.run());
+        	        gSlide.valueProperty().addListener((obs, oldVal, newVal) -> updateColor.run());
+        	        bSlide.valueProperty().addListener((obs, oldVal, newVal) -> updateColor.run());
+        	        
+        	        // 
+        	        dialog.getDialogPane().setContent(root);
+
+        	        // create and add buttons
+        	        ButtonType saveBtn = new ButtonType("Save");
+        	        ButtonType cancelBtn = new ButtonType("Close");
+        	        dialog.getDialogPane().getButtonTypes().addAll(saveBtn, cancelBtn);
+        	        
+        	        // collect form data and transmit to the server upon save
+        	        dialog.showAndWait().ifPresent(response -> {
+        	            if (response == saveBtn) {
+
+        	              	// collect values
+        	                int r = (int)rSlide.getValue();
+        	                int g = (int)gSlide.getValue();
+        	                int b = (int)bSlide.getValue();
+
+        	                // check username input
+        	                String username = nameField.getText();
+        	                if (username == null || username.isEmpty()) {
+        	                    System.out.println("Username cannot be empty");
+        	                    return;
+        	                }
+
+        	                // only 20 bytes reserved for username
+        	                if (username.length() > 20) {
+        	                    username = username.substring(0, 20);
+        	                }
+
+        	                // build packet
+                            ByteBuffer dbuf = ByteBuffer.allocate(53);	// use a byte buffer
+        	                byte header = 0x05;							// add header of 5 for user updates
+
+        	                //put primitives into the bytebuffer
+        	                dbuf.put(header);
+        	                dbuf.putInt(r);
+        	                dbuf.putInt(g);
+        	                dbuf.putInt(b);
+        	                
+        	                // write username
+        	                for (int i = 0; i < 20; i++) {
+        	                 	if (username.length() > i) {
+        	                        dbuf.putChar(username.charAt(i));
+        	                    } else {
+        	                    	dbuf.putChar('\0');					// use null 
+        	                    }
+        	                }
+        	                
+        	                // update user in the Main method
+        	                user.setR(r);
+        	                user.setG(g);
+        	                user.setB(b);
+        	                user.setUsername(username);	
+
+        	                //send the byte array of data to the server
+        	                byte[] bytes = dbuf.array();
+        	                DatagramPacket dp = new DatagramPacket(bytes, bytes.length, serverAddress, port);
+        	                udpT.send(dp);
+        	            }
+        	        });
+        	    });
+        	}
+        	eAction = null;    
 	}
 }
