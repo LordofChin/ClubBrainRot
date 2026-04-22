@@ -32,7 +32,7 @@ public class Users implements Serializable
 	}
 
 
-	public HashSet<User> getsers()
+	public HashSet<User> getUsers()
 	{
 		return users;
 	}

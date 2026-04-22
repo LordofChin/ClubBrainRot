@@ -19,20 +19,26 @@ import application.core.MapState;
 import application.core.User;
 
 
-public class Map extends StackPane{
+public class Map extends StackPane
+{
+	// isntance state
 	public static Map instance;
-	public static Chat chat = Chat.getInstance();
 	
+	// map state
+	// no interenet arcade machine fields
     private static Image noInternetMachineImg;
     private static Rectangle noInternetMachine;
     
+    // fishing game arcade machine fields
+    private static Image fishingMachineImg;
+    private static Rectangle fishingMachine;
+    
+    // closet fields
     private static Image closetImg;
     private static Rectangle closet;
-    
 
-	private Map (){
-		super();
-		
+	private Map ()
+	{
 		// set images
 		
 		// set image for no interenet arcade machine
@@ -40,40 +46,27 @@ public class Map extends StackPane{
 	    noInternetMachine = new Rectangle(150, 200);
 	    noInternetMachine.setFill(new ImagePattern(noInternetMachineImg));
 	    
+		// set image for no fishing arcade machine
+		fishingMachineImg = new Image("/assets/arcade-machine-2.png");
+	    fishingMachine = new Rectangle(200, 150);
+	    fishingMachine.setFill(new ImagePattern(fishingMachineImg));
+	    
 	    // set image for the closet
 	    closetImg = new Image("/assets/closet.png");
 	    closet = new Rectangle(150, 200);
 	    closet.setFill(new ImagePattern(closetImg));
 	    
-	    //getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
-
 	    // set background image
 	    setStyle("-fx-background-image: url('/assets/background.jpg'); -fx-background-size: cover;");
-
-		}
-
-	
-	public static Map getInstance(Map map)
-	{
-		if (instance == null)
-		{
-			instance = map;
-			map.setAlignment(Pos.CENTER);
-			return instance;
-		}
-		else 
-		{
-			return instance;
-		}
 	}
 		
+	// singleton design pattern
 	public static Map getInstance()
 	{
 		if (instance == null)
 		{
-			Map map = new Map();
-			instance = map;
-			return map;
+			instance = new Map();
+			return instance;
 		}
 		else 
 		{
@@ -81,22 +74,28 @@ public class Map extends StackPane{
 		}
 	}
 	
+	// allows for the MapState to be updated
 	public static void setInstance(MapState state) {
+		// pass a runnable to the javafx application to update the javafx scene
 	    Platform.runLater(() -> {
+	    	// collect your users
 	    	HashSet<User> users = state.users;
 	        
+	    	// end all existent children 
 	        instance.getChildren().clear();
 	        
-		    instance.getChildren().addAll(noInternetMachine,closet);
+	        // add back the pre-rendered interactive objects
+		    instance.getChildren().addAll(noInternetMachine, fishingMachine, closet);
 		    StackPane.setAlignment(noInternetMachine, Pos.CENTER_RIGHT);
 		    StackPane.setAlignment(closet, Pos.BOTTOM_LEFT);
+		    fishingMachine.setTranslateY(-250);
+		    StackPane.setAlignment(fishingMachine, Pos.BOTTOM_LEFT);
 		    
+		    // iterate over the current user list
 	        for (User u : users) {
-	            //System.out.println("Updating player: " + u.getUsername());
-	            
-	            Double[] coords = new Double [] {u.x, u.y};
+	        	// place circle and label at current users position
+	        	Double[] coords = new Double [] {u.x, u.y};
 	            Circle circle = new Circle(40); 
-	            
 	            circle.setTranslateX(coords[0]);
 	            circle.setTranslateY(coords[1]);
 	            Label lbl = new Label();
@@ -104,6 +103,7 @@ public class Map extends StackPane{
 	            lbl.setTranslateX(coords[0]);
 	            lbl.setTranslateY(coords[1]);
 	            
+	            // animate movement if the user is moving (change their color)
 	            if (u.moving) {
 		            lbl.setTextFill(Color.rgb(u.r,u.g, u.b));
 	            	circle.setFill(Color.rgb(255 - u.r, 255 - u.g,255 - u.b));
@@ -113,40 +113,36 @@ public class Map extends StackPane{
 	            	circle.setFill(Color.rgb(u.r,u.g,u.b));
 	            }
 	            
-	            
-	            //System.out.println(coords[0]);
-	            //System.out.println(coords[1]);
-	            
+	            // add the user and their game tag
 	            instance.getChildren().addAll(circle, lbl);
 	           
-	            
-	        	if(u.getUsername().equals(Main.username))
+	            // specific actions for if the current user is the client
+	        	if(u.getUsername().equals(Main.user.getUsername()))
 	        	{
-                    Main.color = Color.rgb(u.r, u.g, u.b);
+	        		// update user based on server state of user
+                    Main.user.setR(u.r);
+                    Main.user.setG(u.g);
+                    Main.user.setB(u.b);
                     Main.user = u;
-
+                    
+                    // reset game javafx application state to handle collisions.
 	        		instance.applyCss();
 	        		instance.layout();
+	        		
+	        		// check for collisions 
 	        		if (noInternetMachine.getBoundsInParent().intersects(circle.getBoundsInParent()))
 	        		{
-	    		    	Label instructionLbl = new Label("No Interenet Game: press e to play");
-	    		    	instructionLbl.setTranslateY(-30);
-	    		    	instructionLbl.setStyle("-fx-text-fill: limegreen;  -fx-font-family: Menlo; -fx-background-color: black;");
-
-	    		    	
-	    	            instance.getChildren().addAll(instructionLbl);
-	    	            StackPane.setAlignment(instructionLbl, Pos.BOTTOM_CENTER);
-	    	            Main.eAction = "Interenet";
+	        			instructionLabel("No Interent Game: press e to play", "Interenet");
+	    		    }
+	        		else if (fishingMachine.getBoundsInParent().intersects(circle.getBoundsInParent()))
+	        		{
+	    		    	instructionLabel("Fishing Game: press e to play", "Fishing");
 	    		    }
 	        		else if (closet.getBoundsInParent().intersects(circle.getBoundsInParent()))
 	        		{
-	    		    	Label instructionLbl = new Label("clost: press e to change");
-	    		    	instructionLbl.setTranslateY(-30);
-	    		    	instructionLbl.setStyle("-fx-text-fill: limegreen;  -fx-font-family: Menlo; -fx-background-color: black;");
-	    	            instance.getChildren().addAll(instructionLbl);
-	    	            StackPane.setAlignment(instructionLbl, Pos.BOTTOM_CENTER);
-	    	            Main.eAction = "Closet";
+	        			instructionLabel("Closet: press e to change", "Closet");
 	    		    }
+	        		// reset action if no collisions found
 	        		else 
 	        		{
 	        			Main.eAction = null;
@@ -156,9 +152,15 @@ public class Map extends StackPane{
 	    });
 	}
 	
-	public void add(Circle circle)
+	// instruct user to use key 'e' to interact
+	public static void instructionLabel(String message, String action)
 	{
-		instance.getChildren().add(circle);
+    	Label instructionLbl = new Label(message);
+    	instructionLbl.setTranslateY(-30);
+    	instructionLbl.setStyle("-fx-text-fill: limegreen;  -fx-font-family: Menlo; -fx-background-color: black;");
+        instance.getChildren().addAll(instructionLbl);
+        StackPane.setAlignment(instructionLbl, Pos.BOTTOM_CENTER);
+        Main.eAction = action;
 	}
 	
 }

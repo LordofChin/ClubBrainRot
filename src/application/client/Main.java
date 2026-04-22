@@ -28,19 +28,23 @@ import java.util.Optional;
 
 
 public class Main extends Application{
-	private Map map = Map.getInstance();
-	private StackPane mainPane = new StackPane();
-	private Chat chat = Chat.getInstance();
-	private static String serverIP;
+	// application state
 	private static Main instance;
-	public static InetAddress serverAddress;
-    public static int port = 3478;
+	private StackPane mainPane = new StackPane();
+
+	// network connections state
+	private static String serverIP;
+	protected static InetAddress serverAddress;
+    protected static int port = 3478;
     private static DatagramSocket socket;
     private static UdpTransmitter udpT;
-    public static String username;
-    public static Color color;
-    public static User user;
-    public static String eAction = null;
+    
+    // game and user states
+    protected static User user;
+    protected static String eAction = null;
+	private Map map = Map.getInstance();
+	private Chat chat = Chat.getInstance();
+	
     // color sliders and labels
 	Slider rSlide;
 	Slider gSlide;
@@ -50,7 +54,7 @@ public class Main extends Application{
 	Label lblBlueVal;
     Rectangle preview;
 
-
+    
 	public static Main getInstance() 
 	{
 		if (instance == null) 
@@ -60,24 +64,27 @@ public class Main extends Application{
 		return instance;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) 
+	{
 		serverIP = args[0];
 		try {
-			socket = new DatagramSocket();
+			socket = new DatagramSocket();			// get any ephemeral port
 		} catch (SocketException e) {
-			e.printStackTrace();
+			System.out.println("Was not able to establish a socket on any ephemeral port. \nPlease consult with you computer's amdinistrator.\n" + e);				
 		}
-		udpT = UdpTransmitter.getInstance(socket);
-	    Application.launch(args);
+		udpT = UdpTransmitter.getInstance(socket);	// instantiate UDPTransmitter for all client-side classes
+	    Application.launch(args);					// start the application
 	}
 
     @Override
     public void start(Stage stage) {
     	try {
-			serverAddress = InetAddress.getByName(serverIP);
+			serverAddress = InetAddress.getByName(serverIP);	// get Inet address from the provided server IP
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
+    	
+    	// add map and  
     	mainPane.getChildren().addAll(map, chat.getGridPane());
     	StackPane.setAlignment(map, Pos.CENTER);
     	StackPane.setAlignment(chat.getGridPane(), Pos.TOP_LEFT);
@@ -98,13 +105,17 @@ public class Main extends Application{
             	if(eAction.equals("Interenet"))
             	{
             		Platform.runLater(() -> {
-            		    try {
-            		        NoInterenetGame game = new NoInterenetGame(color, username);
+            		        NoInterenetGame game = new NoInterenetGame();
             		        Stage gameStage = new Stage();
             		        game.start(gameStage);
-            		    } catch (Exception e) {
-            		        e.printStackTrace();
-            		    }
+            		});
+            	}
+            	
+            	// starts fishing game 
+            	if(eAction.equals("Fishing"))
+            	{
+            		Platform.runLater(() -> {
+            		        FishingGame.main(new String [] {});
             		});
             	}
             	
@@ -124,7 +135,7 @@ public class Main extends Application{
 
             			
             			// name field
-            	        TextField nameField = new TextField(username);
+            	        TextField nameField = new TextField(user.getUsername());
 
             	        // grid
             	        GridPane grid = new GridPane();
@@ -173,14 +184,15 @@ public class Main extends Application{
             	        gSlide.valueProperty().addListener((obs, oldVal, newVal) -> updateColor.run());
             	        bSlide.valueProperty().addListener((obs, oldVal, newVal) -> updateColor.run());
             	        
-
+            	        // 
             	        dialog.getDialogPane().setContent(root);
 
+            	        // create and add buttons
             	        ButtonType saveBtn = new ButtonType("Save");
             	        ButtonType cancelBtn = new ButtonType("Close");
-
             	        dialog.getDialogPane().getButtonTypes().addAll(saveBtn, cancelBtn);
             	        
+            	        // collect form data and transmit to the server upon save
             	        dialog.showAndWait().ifPresent(response -> {
             	            if (response == saveBtn) {
 
@@ -201,27 +213,32 @@ public class Main extends Application{
             	                    username = username.substring(0, 20);
             	                }
 
-            	                    // build packet
-                                ByteBuffer dbuf = ByteBuffer.allocate(53);
-            	                byte header = 0x05;
+            	                // build packet
+                                ByteBuffer dbuf = ByteBuffer.allocate(53);	// use a byte buffer
+            	                byte header = 0x05;							// add header of 5 for user updates
 
+            	                //put primitives into the bytebuffer
             	                dbuf.put(header);
             	                dbuf.putInt(r);
             	                dbuf.putInt(g);
             	                dbuf.putInt(b);
-
-            	                    // write username
+            	                
+            	                // write username
             	                for (int i = 0; i < 20; i++) {
             	                 	if (username.length() > i) {
             	                        dbuf.putChar(username.charAt(i));
             	                    } else {
-            	                    	dbuf.putChar('\0');
+            	                    	dbuf.putChar('\0');					// use null 
             	                    }
             	                }
-            	                    
-            	                Main.color = Color.rgb(r, g, b);
-            	                Main.username = username;	// update username in the Main method
+            	                
+            	                // update user in the Main method
+            	                user.setR(r);
+            	                user.setG(g);
+            	                user.setB(b);
+            	                user.setUsername(username);	
 
+            	                //send the byte array of data to the server
             	                byte[] bytes = dbuf.array();
             	                DatagramPacket dp = new DatagramPacket(bytes, bytes.length, serverAddress, port);
             	                udpT.send(dp);
@@ -255,7 +272,7 @@ public class Main extends Application{
 
 	
 	private void runClient() {
-	    UdpReceiver udpR = new UdpReceiver(socket, new ClientUdpHandler(socket));
+	    UdpReceiver udpR = new UdpReceiver(socket, new ClientUdpHandler());
 	    udpR.start();
 	}
 	
@@ -266,7 +283,7 @@ public class Main extends Application{
 	    dialog.setContentText("Please enter your username:");
 
 	    Optional<String> result = dialog.showAndWait();
-	    username = result.orElse("Anonymous");
-	    return username;
+		user = new User(result.orElse("Anonymous"));							// instatiate user
+	    return user.getUsername();
 	}
 }

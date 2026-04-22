@@ -2,6 +2,7 @@
 
 package application.core;
 
+import java.io.IOException;
 import java.net.*;
 
 public class UdpReceiver extends Thread {
@@ -18,16 +19,17 @@ public class UdpReceiver extends Thread {
         byte[] buffer = new byte[8192];
 
         while (true) {
-            try {
-                DatagramPacket datagram = new DatagramPacket(buffer, buffer.length); // creates datagram from the buffer
+            	// create datagram from the buffer
+                DatagramPacket datagram = new DatagramPacket(buffer, buffer.length); 
+                // waits for datagrams
+                try {
+					socket.receive(datagram);
+				} catch (IOException e) {
+					System.out.println("Failed to read datagram packet from buffer: " + e);
+				}	
+                // handles the datagrams
+                handler.handle(datagram); 	
 
-                socket.receive(datagram);	// waits for datagrams
-
-                handler.handle(datagram); 	// handles the datagrams
-
-            } catch (Exception e) {
-                System.err.println(e);
-            }
         }
     }
 }

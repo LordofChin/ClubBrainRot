@@ -4,6 +4,8 @@ package application.core;
 import java.io.Serializable;
 import java.util.Random;
 
+import javafx.scene.paint.Color;
+
 public class User implements Serializable
 {
 	
@@ -18,6 +20,7 @@ public class User implements Serializable
 	public Double [] velocity;
 	public int ttl; //each user has so long to make a interact before they are removed from the server
 	public boolean moving;
+	//public HashMap<Game, int> scores
 	
 	
 	public User(String username){
@@ -109,5 +112,6 @@ public class User implements Serializable
 
 		return String.format("Username: %s\n%d red, %d green, %d blue\nx: %.2f\ny: %.2f\n", username, r, g, b, x, y);
 	}
+
 
 }

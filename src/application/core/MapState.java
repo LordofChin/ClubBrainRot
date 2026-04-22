@@ -17,11 +17,12 @@ import javafx.scene.shape.Circle;
 
 public class MapState implements Serializable 
 {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L; 	// veriosn ID is required by all serializable objects
     // Just store names and positions, NOT Circles
-    public HashSet<User> users = new HashSet<>();
-    public static MapState instance;
+    public HashSet<User> users = new HashSet<>();		// HashSet of users
+    public static MapState instance;					// static instance of MapState for each client and server
 
+    // singleton design pattern
 	public static MapState getInstance()
 	{
 		if (instance == null)
@@ -32,19 +33,12 @@ public class MapState implements Serializable
 			return instance;
 	}
     
+	// method to read in MapStates from bytes in packets
 	public static MapState read(DatagramPacket packet) {
-        byte type = packet.getData()[0];
-
-        // make sure its a map state change
-        if (type != 2) {
-            System.out.println("Unexpected packet type: " + type);
-            return null;
-        }
 
         // capture all the packet data in a byte array input stream
-        ByteArrayInputStream bis = new ByteArrayInputStream(packet.getData(), 1, packet.getLength() - 1);
-        instance = new MapState();
-	    
+        ByteArrayInputStream bis = new ByteArrayInputStream(packet.getData(), 1, packet.getLength() - 1); // skip header
+        
         // try to pass the bis into an object input stream to be casted into a MapState Object
         try {
 	        ObjectInputStream ois = new ObjectInputStream(bis);
@@ -67,40 +61,40 @@ public class MapState implements Serializable
 	    instance = state;
 	}
 	
-	public DatagramPacket write(SocketAddress sadd) {
-		try 
-		{
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			baos.write(0x02); // prepend type byte
+	// write the MapState to a Packet for the specified sadd
+	public DatagramPacket write(SocketAddress sadd) 
+	{
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		baos.write(0x02); // prepend type byte
+
+		try {
 			ObjectOutputStream oos = new ObjectOutputStream(baos);
-			oos.writeObject(getInstance());
+			oos.writeObject(instance);
 			oos.flush();
 
-			byte[] data = baos.toByteArray();
-			return new DatagramPacket(data, data.length, sadd);
-		} catch (IOException e)
-		{
-			System.err.print(e);
+		} catch (IOException e) {
+			System.out.println("Failed to write MapState to object: " + e);
 			return null;
 		}
+		
+		byte[] data = baos.toByteArray();
+		return new DatagramPacket(data, data.length, sadd);
 	}
 	
 	public byte[] toBytes()
 	{
-		try 
-		{
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    baos.write(0x02); // prepend type byte
-		    ObjectOutputStream oos = new ObjectOutputStream(baos);
-		    oos.writeObject(getInstance());
-	        oos.reset(); 
-		    oos.flush();
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	    baos.write(0x02); // prepend type byte
+	    try {
+	    	ObjectOutputStream oos = new ObjectOutputStream(baos);
+	    	oos.writeObject(getInstance());
+	    	oos.reset(); 
+	    	oos.flush();
+	    } catch (IOException e) {
+	    	
+	    }
 
-		    return baos.toByteArray();
-		} catch (IOException e)
-		{
-			System.err.print(e);
-			return null;
-		}
+	    return baos.toByteArray();
+
 	}
 }

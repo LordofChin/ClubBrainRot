@@ -3,10 +3,12 @@ package application.client;
 import javafx.geometry.Pos;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.animation.AnimationTimer;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -20,9 +22,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-public class NoInterenetGame extends Application {
-	private static Color usercolor;
-	private static String username;
+public class NoInterenetGame extends Application 
+{
     private static Image tralalero_tralala_img;
     private static Rectangle tralalero_tralala;
     private static Image tung_tung_tung_sahur_img;
@@ -30,17 +31,7 @@ public class NoInterenetGame extends Application {
     private static Rectangle il_cacto_hipopotamo;
     private static Image il_cacto_hipopotamo_img;
     private static Rectangle la_vaca_saturno_saturnita;
-    private static Image la_vaca_saturno_saturnita_img;
-
-    
-    
-    
-	public NoInterenetGame (Color usercolor, String username)
-	{
-		super();
-		this.usercolor = usercolor;
-		this.username = username;
-	}
+    private static Image la_vaca_saturno_saturnita_img;    
 	
     @Override
     public void start(Stage primaryStage) 
@@ -58,11 +49,37 @@ public class NoInterenetGame extends Application {
     }
 
     // Method to create a new game scene
-    public Scene createGameScene(Stage primaryStage, Scene loseScene) 
+    public Scene createGameScene(Stage primaryStage, Scene previousScene) 
     {
-    	primaryStage.setFullScreen(true);
+    	boolean [] skip = {false};
     	
-        Pane pane = new Pane();
+    	if (skip [0] == false)
+        {
+        	Alert howToPlay = new Alert((Alert.AlertType.CONFIRMATION));
+            howToPlay.setTitle("How To Play");
+            howToPlay.setHeaderText("Press SPACE to start the game and to jump over the obsticles, every Jump = 5 points!!");
+    		howToPlay.setContentText("Want To Play?");
+    		
+    		howToPlay.getButtonTypes().clear();
+    		
+    		ButtonType playTheGameButton = new ButtonType("Play");
+    		ButtonType returnToLobbyButton = new ButtonType("Return to Lobby");
+    		
+    		howToPlay.getButtonTypes().addAll(playTheGameButton, returnToLobbyButton);
+    		
+    		howToPlay.showAndWait().ifPresent(response -> {
+    			if(response == playTheGameButton)
+    			{
+    				howToPlay.close();
+    			}
+    			else 
+    			{
+    				primaryStage.setScene(previousScene);
+    			}
+    		});
+        }
+    	
+        BorderPane pane = new BorderPane();
        
         Scene scene = new Scene(pane, 300, 300);
 
@@ -70,11 +87,13 @@ public class NoInterenetGame extends Application {
         Circle player = new Circle(15);
         player.setTranslateX(100);
         player.setTranslateY(985);
-        player.setFill(usercolor);
+        Color color = Color.rgb(Main.user.getR(), Main.user.getB(), Main.user.getG());
+        player.setFill(color);
         
         // Username
         Label usernameLbl = new Label();
-        usernameLbl.setText(username);
+        usernameLbl.setText(Main.user.getUsername());
+        
         usernameLbl.translateXProperty().bind(
         	    player.translateXProperty()
         	        .subtract(usernameLbl.widthProperty().divide(2))
@@ -84,7 +103,7 @@ public class NoInterenetGame extends Application {
         	        .subtract(usernameLbl.heightProperty().divide(2))
         	);
         usernameLbl.setFont(new Font("Menlo",8));
-        usernameLbl.setTextFill(usercolor.invert());
+        usernameLbl.setTextFill(color.invert());
         
         Rectangle ground = new Rectangle(5000,20);
         ground.setTranslateX(0);
@@ -145,6 +164,7 @@ public class NoInterenetGame extends Application {
         double[] velocityY = {0};
         boolean[] canJump = {true};
         boolean[] gameStart = {false};
+        int[] score = {5};
 
         // Key movement
         scene.setOnKeyPressed(e -> {
@@ -157,10 +177,14 @@ public class NoInterenetGame extends Application {
                     else if (canJump[0]) 
                 	{
                         velocityY[0] = jumpStrength;
+                        score[0] +=5;
                     }
                     break;
             }
         });
+        
+        Label showScore = new Label("SCORE " + score[0]);
+        pane.setCenter(showScore);
         
         double[] obstacleSpeed = {5};
         double speedIncrease = 0.005;
@@ -176,7 +200,9 @@ public class NoInterenetGame extends Application {
             	{
             		return;
             	}
-            	primaryStage.setFullScreen(true);
+            	
+            	 Label showScore = new Label("SCORE " + score[0]);
+                 pane.setCenter(showScore);
             	
             	
                 // Gravity
@@ -235,8 +261,35 @@ public class NoInterenetGame extends Application {
                 // Check collision
                 if (player.getBoundsInParent().intersects(obstacle.getBoundsInParent()) || player.getBoundsInParent().intersects(obstacle2.getBoundsInParent()) || player.getBoundsInParent().intersects(obstacle3.getBoundsInParent()) || player.getBoundsInParent().intersects(obstacle4.getBoundsInParent()) ) 
                 {
-                    primaryStage.setScene(loseScene);
                     stop();
+                    Platform.runLater(() -> {
+                    	
+                    	Alert lost = new Alert((Alert.AlertType.CONFIRMATION));
+                        lost.setTitle("Game Over");
+                        lost.setHeaderText("Total Score: " + score[0]);
+                		lost.setContentText("Try again?");
+                		
+                		lost.getButtonTypes().clear();
+                		
+                		ButtonType playButton = new ButtonType("Play Again");
+                		ButtonType returnButton = new ButtonType("Return to Lobby");
+                		
+                		lost.getButtonTypes().addAll(playButton, returnButton);
+                		
+                		lost.showAndWait().ifPresent(response -> {
+                			if(response == playButton)
+                			{
+                				skip[0] = true;
+                				primaryStage.setScene(createGameScene(primaryStage, previousScene));
+                			}
+                			else 
+                			{
+                				primaryStage.setScene(previousScene);
+                			}
+                		});
+                    	
+                    	
+                    });
                 }
                 
                 obstacleSpeed[0] += speedIncrease;
@@ -271,20 +324,6 @@ public class NoInterenetGame extends Application {
 
         return loseScene;
     }
-    
-    public double timer(double time)
-    {
-		for (int i = 0; i<=100; i++)
-		{
-			try {
-				Thread.sleep(250);
-				time = i;
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		return time;
-	}
     
 
     public static void main(String[] args) 
