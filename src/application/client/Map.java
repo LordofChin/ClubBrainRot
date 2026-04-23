@@ -3,6 +3,7 @@ package application.client;
 import java.util.HashSet;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
@@ -37,10 +38,17 @@ public class Map extends StackPane
     private static Image moleMachineImg;
     private static Rectangle moleMachine;
     
+    // dodge brain rot
+    private static Image dodgeBrainRotMachineImg;
+    private static Rectangle dodgeBrainRotMachine;
+    
     // closet fields
     private static Image closetImg;
     private static Rectangle closet;
+    
+	private static Image img = new Image("/assets/player.png");
 
+    
 	private Map ()
 	{
 		// set images
@@ -49,6 +57,11 @@ public class Map extends StackPane
 		noInternetMachineImg = new Image("/assets/arcade-machine-1.png");
 	    noInternetMachine = new Rectangle(150, 200);
 	    noInternetMachine.setFill(new ImagePattern(noInternetMachineImg));
+	    
+		// set image for dodge brain rot arcade machine
+		dodgeBrainRotMachineImg = new Image("/assets/dodge-brain-rot.png");
+		dodgeBrainRotMachine = new Rectangle(150, 200);
+		dodgeBrainRotMachine.setFill(new ImagePattern(dodgeBrainRotMachineImg));
 	    
 		// set image for fishing arcade machine
 		fishingMachineImg = new Image("/assets/arcade-machine-2.png");
@@ -64,7 +77,7 @@ public class Map extends StackPane
 	    closetImg = new Image("/assets/closet.png");
 	    closet = new Rectangle(150, 200);
 	    closet.setFill(new ImagePattern(closetImg));
-	    
+	    	    
 	    // set background image
 	    setStyle("-fx-background-image: url('/assets/background.jpg'); -fx-background-size: cover;");
 	}
@@ -94,8 +107,11 @@ public class Map extends StackPane
 	        instance.getChildren().clear();
 	        
 	        // add back the pre-rendered interactive objects
-		    instance.getChildren().addAll(noInternetMachine, fishingMachine, closet, moleMachine);
+		    instance.getChildren().addAll(noInternetMachine, fishingMachine, closet, moleMachine, dodgeBrainRotMachine);
 		    StackPane.setAlignment(noInternetMachine, Pos.CENTER_RIGHT);
+		    noInternetMachine.setTranslateY(-100);
+		    StackPane.setAlignment(dodgeBrainRotMachine, Pos.CENTER_RIGHT);
+		    dodgeBrainRotMachine.setTranslateY(100);
 		    StackPane.setAlignment(closet, Pos.BOTTOM_LEFT);
 		    fishingMachine.setTranslateY(-250);
 		    StackPane.setAlignment(fishingMachine, Pos.BOTTOM_LEFT);
@@ -107,26 +123,23 @@ public class Map extends StackPane
 	        for (User u : users) {
 	        	// place circle and label at current users position
 	        	Double[] coords = new Double [] {u.x, u.y};
-	            Circle circle = new Circle(40); 
-	            circle.setTranslateX(coords[0]);
-	            circle.setTranslateY(coords[1]);
+	        	ImageView sprite;
+	        	sprite = new ImageView(img);
+	        	sprite.setFitWidth(120);
+	        	sprite.setFitHeight(120);
+	            sprite.setTranslateX(coords[0]);
+	            sprite.setTranslateY(coords[1]);
 	            Label lbl = new Label();
 	            lbl.setText(u.username);
 	            lbl.setTranslateX(coords[0]);
-	            lbl.setTranslateY(coords[1]);
-	            
-	            // animate movement if the user is moving (change their color)
-	            if (u.moving) {
-		            lbl.setTextFill(Color.rgb(u.r,u.g, u.b));
-	            	circle.setFill(Color.rgb(255 - u.r, 255 - u.g,255 - u.b));
-	            }
-	            else {
-		            lbl.setTextFill(Color.rgb(255 - u.r,255 - u.g,255 - u.b));
-	            	circle.setFill(Color.rgb(u.r,u.g,u.b));
-	            }
+	            lbl.setTranslateY(coords[1]-70);
+		        lbl.setTextFill(Color.rgb(u.r,u.g, u.b));
+		        lbl.setStyle("-fx-font-family: Menlo; -fx-background-color: black; -fx-font-size: 24;");
+
+
 	            
 	            // add the user and their game tag
-	            instance.getChildren().addAll(circle, lbl);
+	            instance.getChildren().addAll(sprite, lbl);
 	           
 	            // specific actions for if the current user is the client
 	        	if(u.getUsername().equals(Main.user.getUsername()))
@@ -142,21 +155,25 @@ public class Map extends StackPane
 	        		instance.layout();
 	        		
 	        		// check for collisions 
-	        		if (noInternetMachine.getBoundsInParent().intersects(circle.getBoundsInParent()))
+	        		if (noInternetMachine.getBoundsInParent().intersects(sprite.getBoundsInParent()))
 	        		{
 	        			instructionLabel("No Interent Game: press e to play", "Interenet");
 	    		    }
-	        		else if (fishingMachine.getBoundsInParent().intersects(circle.getBoundsInParent()))
+	        		else if (fishingMachine.getBoundsInParent().intersects(sprite.getBoundsInParent()))
 	        		{
 	    		    	instructionLabel("Fishing Game: press e to play", "Fishing");
 	    		    }
-	        		else if (closet.getBoundsInParent().intersects(circle.getBoundsInParent()))
+	        		else if (closet.getBoundsInParent().intersects(sprite.getBoundsInParent()))
 	        		{
 	        			instructionLabel("Closet: press e to change", "Closet");
 	    		    }
-	        		else if (moleMachine.getBoundsInParent().intersects(circle.getBoundsInParent()))
+	        		else if (moleMachine.getBoundsInParent().intersects(sprite.getBoundsInParent()))
 	        		{
 	        			instructionLabel("Whack a' Mole: press e to play", "Mole");
+	    		    }
+	        		else if (dodgeBrainRotMachine.getBoundsInParent().intersects(sprite.getBoundsInParent()))
+	        		{
+	        			instructionLabel("Dodge Brain Rot: press e to play", "Dodge");
 	    		    }
 	        		// reset action if no collisions found
 	        		else 

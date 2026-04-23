@@ -61,8 +61,8 @@ public class WhackAMole extends Game {
 
 		timerLabel = new Label("time: " + time);
 		scoreLabel = new Label("score: " + score);
-        timerLabel.setStyle("-fx-font-family: Menlo; -fx-background-color: black;");
-        scoreLabel.setStyle("-fx-font-family: Menlo; -fx-background-color: black;");
+        timerLabel.setStyle("-fx-font-family: Menlo; -fx-background-color: black; -fx-font-size: 24;");
+        scoreLabel.setStyle("-fx-font-family: Menlo; -fx-background-color: black; -fx-font-size: 24;");
         timerLabel.setTextFill(Color.GREEN);
         scoreLabel.setTextFill(Color.GREEN);
 

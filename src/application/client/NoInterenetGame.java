@@ -4,11 +4,13 @@ import javafx.geometry.Pos;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import application.core.Game;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -22,9 +24,28 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-public class NoInterenetGame extends Application 
+public class NoInterenetGame extends Game 
 {
-    private static Image tralalero_tralala_img;
+	private static Stage stage;
+    public NoInterenetGame(Stage stage) {
+		super("No Interenet Game", stage);
+		NoInterenetGame.stage = stage;
+        // Build the first game scene
+        Pane gamePane = createGameScene(stage);
+        gamePane.setPrefSize(stage.getWidth(), stage.getHeight()-100);
+        gamePane.setTranslateY(-50);
+
+        setPane(gamePane);
+        
+        this.setOnShown(e -> {
+            getDialogPane().requestFocus();
+            Platform.runLater(() -> getDialogPane().requestFocus());
+        });
+        
+        showAndWait();
+	}
+
+	private static Image tralalero_tralala_img;
     private static Rectangle tralalero_tralala;
     private static Image tung_tung_tung_sahur_img;
     private static Rectangle tung_tung_tung_sahur;
@@ -33,29 +54,15 @@ public class NoInterenetGame extends Application
     private static Rectangle la_vaca_saturno_saturnita;
     private static Image la_vaca_saturno_saturnita_img;    
 	
-    @Override
-    public void start(Stage primaryStage) 
-    {
-
-        // Build the lose scene
-        Scene loseScene = createLoseScene(primaryStage);
-
-        // Build the first game scene
-        Scene gameScene = createGameScene(primaryStage, loseScene);
-
-        primaryStage.setScene(gameScene);
-        primaryStage.setTitle("No Internet Game");
-        primaryStage.show();
-    }
-
     // Method to create a new game scene
-    public Scene createGameScene(Stage primaryStage, Scene previousScene) 
+    public Pane createGameScene(Stage primaryStage) 
     {
     	boolean [] skip = {false};
     	
     	if (skip [0] == false)
         {
         	Alert howToPlay = new Alert((Alert.AlertType.CONFIRMATION));
+        	howToPlay.initOwner(stage);
             howToPlay.setTitle("How To Play");
             howToPlay.setHeaderText("Press SPACE to start the game and to jump over the obsticles, every Jump = 5 points!!");
     		howToPlay.setContentText("Want To Play?");
@@ -63,26 +70,19 @@ public class NoInterenetGame extends Application
     		howToPlay.getButtonTypes().clear();
     		
     		ButtonType playTheGameButton = new ButtonType("Play");
-    		ButtonType returnToLobbyButton = new ButtonType("Return to Lobby");
     		
-    		howToPlay.getButtonTypes().addAll(playTheGameButton, returnToLobbyButton);
+    		howToPlay.getButtonTypes().addAll(playTheGameButton);
     		
     		howToPlay.showAndWait().ifPresent(response -> {
     			if(response == playTheGameButton)
     			{
     				howToPlay.close();
     			}
-    			else 
-    			{
-    				primaryStage.setScene(previousScene);
-    			}
     		});
         }
     	
-        BorderPane pane = new BorderPane();
+        Pane pane = new Pane();
        
-        Scene scene = new Scene(pane, 300, 300);
-
         // Player
         Circle player = new Circle(15);
         player.setTranslateX(100);
@@ -166,8 +166,13 @@ public class NoInterenetGame extends Application
         boolean[] gameStart = {false};
         int[] score = {5};
 
+        DialogPane dialogPane = getDialogPane();
+        
+        dialogPane.setFocusTraversable(true);
+        Platform.runLater(() -> dialogPane.requestFocus());
+        
         // Key movement
-        scene.setOnKeyPressed(e -> {
+        dialogPane.setOnKeyPressed(e -> {
             switch (e.getCode()) {
                 case SPACE :
                 	if(!gameStart[0])
@@ -184,7 +189,6 @@ public class NoInterenetGame extends Application
         });
         
         Label showScore = new Label("SCORE " + score[0]);
-        pane.setCenter(showScore);
         
         double[] obstacleSpeed = {5};
         double speedIncrease = 0.005;
@@ -202,7 +206,6 @@ public class NoInterenetGame extends Application
             	}
             	
             	 Label showScore = new Label("SCORE " + score[0]);
-                 pane.setCenter(showScore);
             	
             	
                 // Gravity
@@ -268,6 +271,7 @@ public class NoInterenetGame extends Application
                         lost.setTitle("Game Over");
                         lost.setHeaderText("Total Score: " + score[0]);
                 		lost.setContentText("Try again?");
+                		lost.initOwner(stage);
                 		
                 		lost.getButtonTypes().clear();
                 		
@@ -280,11 +284,11 @@ public class NoInterenetGame extends Application
                 			if(response == playButton)
                 			{
                 				skip[0] = true;
-                				primaryStage.setScene(createGameScene(primaryStage, previousScene));
+                				setPane(createGameScene(primaryStage));
                 			}
                 			else 
                 			{
-                				primaryStage.setScene(previousScene);
+                				close();
                 			}
                 		});
                     	
@@ -296,38 +300,36 @@ public class NoInterenetGame extends Application
             }
         }.start();
 
-        return scene;
+        return pane;
     }
 
     // Method to create lose scene
-    public Scene createLoseScene(Stage primaryStage) 
+    public void createLoseScene(Stage primaryStage) 
     {
     	primaryStage.setFullScreen(true);
-        BorderPane losePane = new BorderPane();
+        DialogPane losePane = new DialogPane();
 
         Label oof = new Label("You Lost");
         Button playAgain = new Button("Play Again");
+        Button close = new Button("Close");
+
 
         VBox layout = new VBox(10);
         layout.getChildren().addAll(oof, playAgain);
         layout.setAlignment(Pos.CENTER);
 
-        losePane.setCenter(layout);
 
-        Scene loseScene = new Scene(losePane, 300, 300);
-
+    	Alert loseAlert = new Alert((Alert.AlertType.CONFIRMATION));
+    	loseAlert.setDialogPane(losePane);
+    	loseAlert.initOwner(stage);
         // Play Again button rebuilds a new game scene
         playAgain.setOnAction(e -> {
-            Scene newGame = createGameScene(primaryStage, loseScene);
-            primaryStage.setScene(newGame);
+            Pane newGame = createGameScene(primaryStage);
+            setPane(newGame);
+        });
+        close.setOnAction(e -> {
+            close();
         });
 
-        return loseScene;
-    }
-    
-
-    public static void main(String[] args) 
-    {
-        launch(args);
     }
 }

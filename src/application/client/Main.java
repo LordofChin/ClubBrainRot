@@ -16,6 +16,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
@@ -46,7 +47,7 @@ public class Main extends Application{
     protected static String eAction = null;
 	private Map map = Map.getInstance();
 	private Chat chat = Chat.getInstance();
-	protected Stage stage;
+	protected static Stage stage;
 	private boolean wPressed, aPressed, sPressed, dPressed;
 	
     // color sliders and labels
@@ -96,7 +97,7 @@ public class Main extends Application{
 
     	
         Scene scene = new Scene(mainPane, 800, 600);
-	    udpT.signOn(serverAddress, port, showUsernameDialog());
+	    udpT.signOn(serverAddress, port, showUsernameDialog(),stage);
         
         scene.setOnKeyPressed(event -> {
             String code = event.getCode().getChar().toLowerCase();
@@ -110,9 +111,7 @@ public class Main extends Application{
             	if(eAction.equals("Interenet"))
             	{
             		Platform.runLater(() -> {
-            		        NoInterenetGame game = new NoInterenetGame();
-            		        Stage gameStage = new Stage();
-            		        game.start(gameStage);
+            		        new NoInterenetGame(stage);
             		});
             	}
             	
@@ -256,26 +255,31 @@ public class Main extends Application{
         
 
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            String code = event.getCode().getChar().toLowerCase();
+            KeyCode code = event.getCode();
             
-            // Handle movement keys
-            if (code.equals("w")) wPressed = true;
-            if (code.equals("a")) aPressed = true;
-            if (code.equals("s")) sPressed = true;
-            if (code.equals("d")) dPressed = true;
+            if (code == KeyCode.W || code == KeyCode.UP)    wPressed = true;
+            if (code == KeyCode.A || code == KeyCode.LEFT)  aPressed = true;
+            if (code == KeyCode.S || code == KeyCode.DOWN)  sPressed = true;
+            if (code == KeyCode.D || code == KeyCode.RIGHT) dPressed = true;
 
-            // Handle "E" actions (keep this as-is since it's a single trigger)
-            if (code.equals("e")) {
-                handleEAction(); // Move your existing 'E' logic into a helper method
+            // Handle "E" actions
+            if (code == KeyCode.E) {
+                handleEAction(); 
             }
         });
 
         scene.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
-            String code = event.getCode().getChar().toLowerCase();
-            if (code.equals("w")) wPressed = false;
-            if (code.equals("a")) aPressed = false;
-            if (code.equals("s")) sPressed = false;
-            if (code.equals("d")) dPressed = false;
+            KeyCode code = event.getCode();
+            
+            if (code == KeyCode.W || code == KeyCode.UP)    wPressed = false;
+            if (code == KeyCode.A || code == KeyCode.LEFT)  aPressed = false;
+            if (code == KeyCode.S || code == KeyCode.DOWN)  sPressed = false;
+            if (code == KeyCode.D || code == KeyCode.RIGHT) dPressed = false;
+
+            // Handle "E" actions
+            if (code == KeyCode.E) {
+                handleEAction(); 
+            }
         });
 
         // 3. Start a small AnimationTimer to send the UDP packets smoothly
@@ -334,9 +338,7 @@ public class Main extends Application{
         	if(eAction.equals("Interenet"))
         	{
         		Platform.runLater(() -> {
-        		        NoInterenetGame game = new NoInterenetGame();
-        		        Stage gameStage = new Stage();
-        		        game.start(gameStage);
+        		        new NoInterenetGame(stage);
         		});
         	}
         	
@@ -352,6 +354,13 @@ public class Main extends Application{
         	{
         		Platform.runLater(() -> {
         			new WhackAMole(stage);
+        		});
+        	}
+        	if(eAction.equals("Dodge"))
+        	{
+        		Platform.runLater(() -> {
+        			DodgeBrainRot game = new DodgeBrainRot(stage);
+        			game.showAndWait();
         		});
         	}
         	

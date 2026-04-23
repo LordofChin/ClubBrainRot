@@ -89,17 +89,14 @@ public class FishingGame extends Game {
     private void setupControls() {
         DialogPane dialogPane = getDialogPane();
         
-        // Ensure the pane can receive focus
         dialogPane.setFocusTraversable(true);
         Platform.runLater(() -> dialogPane.requestFocus());
 
-        // Use EventFilters on the DialogPane itself
         dialogPane.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             if (e.getCode() == KeyCode.SPACE) space = true;
             if (e.getCode() == KeyCode.LEFT) left = true;
             if (e.getCode() == KeyCode.RIGHT) right = true;
             
-            // Prevent the key from triggering dialog buttons (like Enter/Esc)
             e.consume(); 
         });
 

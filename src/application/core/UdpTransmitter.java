@@ -88,7 +88,7 @@ public class UdpTransmitter {
     }
     
     // used by client for sign-on
-    public void signOn(InetAddress ip, int port, String username) {
+    public void signOn(InetAddress ip, int port, String username, Stage stage) {
         if (instance == null) {
             System.err.println("DatagramSender instance is not initialized.");
             return;
@@ -111,11 +111,11 @@ public class UdpTransmitter {
 			// start no internet game if the client can't create a socket
             System.out.println("Could not reach server, starting no interenet game: " + e.getMessage());
         	// pass the javafx application thread a runnable to execute.
+            
     		Platform.runLater(() -> {		
-    		    NoInterenetGame game = new NoInterenetGame();
-    		    Stage gameStage = new Stage();
-    		    game.start(gameStage);
+    			new NoInterenetGame(stage);
     		});
+    		
         }
     }
     

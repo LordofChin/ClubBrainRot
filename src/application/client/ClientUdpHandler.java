@@ -29,6 +29,7 @@ public class ClientUdpHandler implements UdpHandler
     	            break;
     	    	case 0x05 : 
     	    		handleKick(packet);		// you just got kicked
+    	    		break;
     	        default:
     	            System.out.println("Unknown packet type: " + header);
     	    }
@@ -41,7 +42,7 @@ public class ClientUdpHandler implements UdpHandler
         Platform.runLater(() -> {
         	// getting kicked simply re-prompts a user to enter their username
         	UdpTransmitter udpT = UdpTransmitter.getInstance();
-        	udpT.signOn(Main.serverAddress, Main.port, Main.showUsernameDialog());
+        	udpT.signOn(Main.serverAddress, Main.port, Main.showUsernameDialog(), Main.stage);
         });
 	}
 
